@@ -1,0 +1,66 @@
+{
+  "name": "ooxml-pages",
+  "version": "0.1.0",
+  "description": "Render Word (.docx) and PowerPoint (.pptx) files in the browser as real pages and slides: Word-like pagination, floating objects, shapes, charts. Small, fast, view-only, no server.",
+  "license": "MIT",
+  "author": "Kai Jungsthoefel",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    "./docx": {
+      "types": "./dist/docx.d.ts",
+      "default": "./dist/docx.js"
+    },
+    "./pptx": {
+      "types": "./dist/pptx.d.ts",
+      "default": "./dist/pptx.js"
+    },
+    "./docx.css": "./dist/docx.css",
+    "./pptx.css": "./dist/pptx.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "!dist/**/*.tsbuildinfo"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Jungsthoefel/ooxml-pages.git"
+  },
+  "homepage": "https://github.com/Kai-Jungsthoefel/ooxml-pages#readme",
+  "bugs": "https://github.com/Kai-Jungsthoefel/ooxml-pages/issues",
+  "keywords": [
+    "docx",
+    "pptx",
+    "ooxml",
+    "office-open-xml",
+    "word",
+    "powerpoint",
+    "viewer",
+    "renderer",
+    "preview",
+    "pagination",
+    "browser"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-css.mjs",
+    "build:demo": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "samples": "node scripts/generate-docx-samples.mjs && node scripts/generate-pptx-samples.mjs",
+    "prepublishOnly": "npm run typecheck && npm run build"
+  },
+  "dependencies": {
+    "@zip.js/zip.js": "^2.24.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "@types/node": "^26.6.5"
+  }
+}

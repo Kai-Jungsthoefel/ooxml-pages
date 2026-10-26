@@ -1,0 +1,184 @@
+/* SPDX-License-Identifier: MIT */
+/* Slides rendered by our PowerPoint renderer. Every shape is positioned in slide pixels (EMU / 9525). */
+
+.pptx-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.pptx-slide {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(27, 30, 35, 0.12), 0 0 0 1px rgba(27, 30, 35, 0.06);
+  color: #000;
+  font-family: Calibri, Carlito, "Segoe UI", sans-serif;
+  font-size: 24px;
+  line-height: 1.2;
+  text-align: left;
+  font-kerning: normal;
+  /* PowerPoint leaves OpenType ligatures off unless asked (no "ti" ligature in Calibri). */
+  font-variant-ligatures: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+.pptx-bg,
+.pptx-bg-image {
+  position: absolute;
+  inset: 0;
+}
+
+.pptx-sp,
+.pptx-pic,
+.pptx-grp,
+.pptx-chart {
+  position: absolute;
+  transform-origin: 50% 50%;
+}
+
+.pptx-geom {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  transform-origin: 50% 50%;
+}
+
+.pptx-text {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  transform-origin: 50% 50%;
+}
+
+.pptx-paras {
+  flex: none;
+  min-height: 0;
+}
+
+.pptx-p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  /* Text columns break wherever the column is full, even after a single line. */
+  orphans: 1;
+  widows: 1;
+}
+
+.pptx-nowrap .pptx-p {
+  white-space: pre;
+}
+
+.pptx-bullet {
+  display: inline-block;
+  text-indent: 0;
+  white-space: pre;
+}
+
+.pptx-tab {
+  display: inline-block;
+  text-indent: 0;
+}
+
+.pptx-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pptx-crop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-origin: 50% 50%;
+}
+
+.pptx-crop img {
+  position: absolute;
+  max-width: none;
+  user-select: none;
+}
+
+.pptx-missing {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: repeating-linear-gradient(135deg, #eceef1 0 8px, #e2e5e9 8px 16px);
+  outline: 1px dashed #9aa1aa;
+  outline-offset: -1px;
+  color: #5b636e;
+  font: 12px/1.2 "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+
+.pptx-table {
+  position: absolute;
+  border-collapse: collapse;
+  table-layout: fixed;
+  transform-origin: 50% 50%;
+}
+
+.pptx-table td {
+  overflow-wrap: break-word;
+}
+
+.pptx-chart-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: hidden;
+}
+
+.pptx-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* SmartArt that has no stored drawing: its text in a plain box. */
+.pptx-smartart {
+  position: absolute;
+  overflow: hidden;
+  padding: 8px 12px;
+  background: rgba(127, 137, 148, 0.12);
+  outline: 1px dashed rgba(127, 137, 148, 0.7);
+  outline-offset: -1px;
+  color: #3a4048;
+  font: 14px/1.35 "Segoe UI", system-ui, sans-serif;
+}
+
+.pptx-smartart-label {
+  margin-bottom: 4px;
+  color: #7f8994;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pptx-smartart ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.pptx-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f6f7f9;
+  color: #5b636e;
+  font: 14px/1.4 "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}

@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dist-demo/
+test-results/
+playwright-report/
+*.tsbuildinfo
+# Office lock and temp files
+~$*
+*.tmp

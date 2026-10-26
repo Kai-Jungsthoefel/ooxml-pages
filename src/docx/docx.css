@@ -1,0 +1,156 @@
+/* SPDX-License-Identifier: MIT */
+/* Pages rendered by our Word renderer. Everything is positioned in page pixels (1 twip = 1/15 px). */
+
+.docx-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.docx-page {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 1px 3px rgba(27, 30, 35, 0.12), 0 0 0 1px rgba(27, 30, 35, 0.06);
+  text-align: left;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+.docx-hf,
+.docx-layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* Header and footer content sits under the body text, like in Word. */
+.docx-hf {
+  z-index: 0;
+}
+
+.docx-t,
+.docx-tab {
+  position: absolute;
+  white-space: pre;
+  line-height: normal;
+}
+
+.docx-tab {
+  display: block;
+  overflow: hidden;
+  text-align: right;
+}
+
+.docx-link {
+  position: absolute;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: pre;
+  line-height: normal;
+}
+
+.docx-fill,
+.docx-rule,
+.docx-slot,
+.docx-group,
+.docx-story,
+.docx-box,
+.docx-page-bg {
+  position: absolute;
+  inset: 0;
+}
+
+.docx-page-border {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.docx-fill,
+.docx-rule,
+.docx-page-border {
+  pointer-events: none;
+}
+
+.docx-rule {
+  width: 0;
+  height: 0;
+}
+
+.docx-box {
+  overflow: visible;
+}
+
+.docx-object {
+  position: absolute;
+  inset: 0;
+}
+
+.docx-object > .pptx-sp,
+.docx-object > .pptx-pic,
+.docx-object > .pptx-grp {
+  position: absolute;
+}
+
+.docx-textbox {
+  position: absolute;
+  overflow: visible;
+  transform-origin: 50% 50%;
+}
+
+.docx-textbox > .docx-story {
+  position: absolute;
+}
+
+.docx-chart,
+.docx-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.docx-canvas {
+  overflow: hidden;
+}
+
+.docx-math {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  white-space: nowrap;
+  line-height: normal;
+}
+
+.docx-math math {
+  display: inline;
+}
+
+.docx-vml {
+  transform-origin: 50% 50%;
+}
+
+.docx-vml-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+
+.docx-vml-crop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.docx-vml-crop img {
+  position: absolute;
+  max-width: none;
+  user-select: none;
+}
+
+.docx-checkbox {
+  display: block;
+}

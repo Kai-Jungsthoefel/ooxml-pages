@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>ooxml-pages demo</title>
+  <style>
+    :root { color-scheme: light; --bg: #eceef1; --fg: #1b1e23; --muted: #5b636e; --line: #d5d9df; --accent: #1f6feb; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body { display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
+    header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: #fff; border-bottom: 1px solid var(--line); }
+    header h1 { margin: 0; font-size: 16px; }
+    header .samples { display: flex; flex-wrap: wrap; gap: 6px; }
+    header button, header label { padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: inherit; font: inherit; cursor: pointer; }
+    header button:hover, header label:hover { border-color: var(--accent); }
+    #status { color: var(--muted); margin-left: auto; }
+    #scroller { flex: 1; overflow: auto; padding: 24px 16px; }
+    #scroller.drop { outline: 3px dashed var(--accent); outline-offset: -12px; }
+    #pages { width: max-content; margin: 0 auto; transform-origin: top left; }
+    .empty { margin: 15vh auto; max-width: 420px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ooxml-pages</h1>
+    <label>Open file … <input id="file" type="file" accept=".docx,.docm,.dotx,.pptx,.pptm,.ppsx,.potx" hidden></label>
+    <div class="samples" id="samples"></div>
+    <span id="status"></span>
+  </header>
+  <main id="scroller">
+    <div id="pages"><p class="empty">Open a .docx or .pptx file, drop one here, or pick a sample. Nothing is uploaded: the file is read in your browser.</p></div>
+  </main>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
