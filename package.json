@@ -1,6 +1,6 @@
 {
   "name": "ooxml-pages",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Render Word (.docx) and PowerPoint (.pptx) files in the browser as real pages and slides: Word-like pagination, floating objects, shapes, charts. Small, fast, view-only, no server.",
   "license": "MIT",
   "author": "Kai Jungsthoefel",
@@ -24,6 +24,7 @@
   "files": [
     "dist",
     "src",
+    "CHANGELOG.md",
     "!dist/**/*.tsbuildinfo"
   ],
   "repository": {

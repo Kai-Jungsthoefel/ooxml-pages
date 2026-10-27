@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 – 2026-10-27
+
+Packaging only, the code is the same as in 0.1.0.
+
+- Published from GitHub Actions with a provenance statement, which links the package on npm to the commit it was built from.
+- The package includes this changelog.
+
 ## 0.1.0 – 2026-10-27
 
 First release as a library of its own. The renderers come from the file viewer OPSIS, where they were written.
