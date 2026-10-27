@@ -15,8 +15,6 @@ Render Word (`.docx`) and PowerPoint (`.pptx`) files in the browser as real page
 npm install ooxml-pages
 ```
 
-The package is not on npm yet. Until the first release, build it from source (see [Development](#development)).
-
 ## Usage
 
 ```ts
@@ -111,6 +109,8 @@ npm run samples      # regenerates the test files in test/fixtures/
 Tests use Playwright. Run `npx playwright install chromium` once, or use an installed browser with `PW_CHANNEL=msedge npm test` (or `chrome`).
 
 The files in `test/fixtures/` are written from scratch by the scripts in `scripts/`, so they can be shared freely. The expected page counts come from Word 365 and PowerPoint 365.
+
+To release, set the version in `package.json` and `CHANGELOG.md`, commit, and push a tag `v<version>` on that commit. The release workflow publishes it to npm.
 
 ## License
 
