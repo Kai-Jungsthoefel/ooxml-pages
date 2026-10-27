@@ -78,6 +78,18 @@ await deck.renderSlide(0, element);
 
 Call `close()` when done: it releases the file, the picture URLs and embedded fonts.
 
+### Metafiles
+
+The EMF and WMF renderer that Word pictures use is available on its own, for showing `.emf`, `.wmf`, `.emz` and `.wmz` files:
+
+```ts
+import { metafileToPng } from 'ooxml-pages/metafile';
+
+const png = await metafileToPng(new Uint8Array(await file.arrayBuffer())); // Blob, or null if it cannot be drawn
+```
+
+It replays the GDI records on a canvas (at most 2400 px on the longer side), so it needs a DOM.
+
 ## What is supported
 
 **Word:** styles and direct formatting, numbering and lists, tab stops with leaders, borders and shading, columns, sections with different page sizes and orientations, headers and footers (first page, even and odd), footnotes and endnotes, fields (page numbers, NUMPAGES, PAGEREF, table of contents), equations (Office Math), tables (merged cells, header rows that repeat, rows that split, cell spacing, vertical text), floating pictures and shapes with every wrap type and anchor, rotation, flips and cropping, text boxes, groups, charts and SmartArt, VML shapes, watermarks and horizontal rules, legacy form fields and content controls with check boxes, symbol fonts, drop caps and text frames, embedded fonts, page color and background pictures, page borders, Word 2010 text effects (gradient fill, outline, shadow), EMF and WMF pictures.

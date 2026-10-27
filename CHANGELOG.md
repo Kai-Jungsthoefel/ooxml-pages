@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 – 2026-10-27
+
+- New entry point `ooxml-pages/metafile` with `metafileToPng`: the EMF/WMF renderer of the Word pictures, for showing metafiles (also EMZ/WMZ) on their own.
+
 ## 0.1.1 – 2026-10-27
 
 Packaging only, the code is the same as in 0.1.0.
