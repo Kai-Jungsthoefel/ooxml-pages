@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 // Writes PowerPoint samples that exercise the presentation renderer: preset shapes, lines and arrowheads,
-// fills, rotation and groups (test/fixtures/shapes.pptx) and text formatting, tables and charts in 4:3
-// (test/fixtures/text-tables-charts.pptx). Everything here is written from scratch, so the output can be
-// published as CC0-1.0. Usage: node scripts/generate-pptx-samples.mjs
+// fills, rotation and groups (test/fixtures/shapes.pptx), text formatting, tables and charts in 4:3
+// (test/fixtures/text-tables-charts.pptx) and the basics: a slide background, a picture, placeholders that
+// inherit from layout and master, a group (test/fixtures/presentation.pptx). Everything here is written from
+// scratch, so the output can be published as CC0-1.0. Usage: node scripts/generate-pptx-samples.mjs
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { crc32, deflateRawSync, deflateSync } from 'node:zlib';
@@ -173,6 +174,11 @@ function sp({ name = 'Shape', box, prst = 'rect', av, fill, line, style, text, b
   const id = nextId++;
   const spPr = `<p:spPr>${xfrm(box, at)}${cust ?? geom(prst, av)}${fill ?? ''}${line ?? ''}</p:spPr>`;
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="${esc(name)} ${id}"/><p:cNvSpPr${txBox ? ' txBox="1"' : ''}/><p:nvPr/></p:nvSpPr>${spPr}${style ?? ''}${text ? txBody(text, body) : ''}</p:sp>`;
+}
+
+function pic({ name = 'Picture', box, rid }) {
+  const id = nextId++;
+  return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="${esc(name)} ${id}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>${xfrm(box)}${geom('rect')}</p:spPr></p:pic>`;
 }
 
 function cxn({ box, prst = 'straightConnector1', line, at = {}, av }) {
@@ -480,6 +486,48 @@ function chartSlide(first) {
 }
 
 writeOut('text-tables-charts.pptx', presentation({ w: 720, h: 540, slides: [textSlide(), tableSlide(), chartSlide(1)] }));
+
+// ---- Deck 3: the basics -------------------------------------------------------------------------------------
+
+const noLine = '<a:ln><a:noFill/></a:ln>';
+
+function coverSlide() {
+  nextId = 2;
+  const bg = `<p:bg><p:bgPr>${solid(rgb('FFF4E8'))}<a:effectLst/></p:bgPr></p:bg>`;
+  return {
+    xml: slideXml([
+      sp({ name: 'Band', box: [0, 504, 960, 36], fill: solid(scheme('accent2')), line: noLine }),
+      label([72, 168, 816, 90], 'ooxml-pages', 54, { b: true }),
+      label([72, 264, 816, 54], 'Sample presentation, written by scripts/generate-pptx-samples.mjs', 24, { color: rgb('525B66') }),
+    ], { bg }),
+  };
+}
+
+function pictureSlide() {
+  nextId = 2;
+  return {
+    xml: slideXml([
+      title('Second slide: shapes and picture'),
+      sp({ box: [48, 132, 252, 126], prst: 'roundRect', fill: solid(scheme('accent2')), line: noLine, text: [{ runs: [{ t: 'Orange area', sz: 20, color: scheme('dk1') }], algn: 'ctr' }], body: 'anchor="ctr"' }),
+      sp({ box: [48, 276, 252, 126], prst: 'ellipse', fill: solid(scheme('accent3')), line: noLine }),
+      pic({ box: [348, 132, 528, 330], rid: 'rId2' }),
+    ]),
+    rels: [['rId2', 'image', '../media/picture.png']],
+  };
+}
+
+function placeholderSlide() {
+  nextId = 2;
+  // A content placeholder without position or text style: both come from layout and master, as in most real decks.
+  const contentId = nextId++;
+  const content = `<p:sp><p:nvSpPr><p:cNvPr id="${contentId}" name="Content ${contentId}"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph idx="1"/></p:nvPr></p:nvSpPr><p:spPr/>${txBody(['Position, font and bullets come from the master', 'The layout only names the placeholder', 'Below on the right: two shapes in a group'])}</p:sp>`;
+  // The group scales its children from child coordinates (chOff/chExt) into its own box.
+  const child = (prst, box, accent) => sp({ box, prst, style: shapeStyle(accent) });
+  const group = `<p:grpSp><p:nvGrpSpPr><p:cNvPr id="${nextId++}" name="Group"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="${pt(576)}" y="${pt(300)}"/><a:ext cx="${pt(288)}" cy="${pt(144)}"/><a:chOff x="0" y="0"/><a:chExt cx="${pt(144)}" cy="${pt(72)}"/></a:xfrm></p:grpSpPr>${child('rect', [0, 0, 69, 72], 'accent2')}${child('ellipse', [75, 0, 69, 72], 'accent3')}</p:grpSp>`;
+  return { xml: slideXml([title('Third slide: placeholders and a group'), content, group]), layout: 2 };
+}
+
+writeOut('presentation.pptx', presentation({ w: 960, h: 540, slides: [coverSlide(), pictureSlide(), placeholderSlide()], media: [['ppt/media/picture.png', picturePng]] }));
 
 function writeOut(name, data) {
   mkdirSync(ROOT, { recursive: true });

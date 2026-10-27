@@ -12,6 +12,7 @@
 //   page-effects.docx         page color with a tiled picture, an art page border, Word 2010 text effects, a VML
 //                             horizontal rule, a table with cell spacing at the foot of a page and a keep-with-next
 //                             chain longer than a page
+//   document.docx             the basics: headings, character formatting, a table, a picture and a page break
 // Everything here is written from scratch, so the output can be published as CC0-1.0.
 // Usage: node scripts/generate-docx-samples.mjs
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -1183,6 +1184,37 @@ function pageEffects() {
   });
 }
 
+// ---- Basic document ----------------------------------------------------------------------------------------
+
+function basicDocument() {
+  const line = ['single', 4, 'D3D8DE'];
+  const parts = [['Part', 'Material', 'Quantity'], ['Gear z18', 'C45', '1'], ['Flange plate', 'S235JR', '2'], ['Hex bolt M8x30', '8.8', '24']];
+  const [w, h] = [emuIn(10 / 3), emuIn(25 / 12)];
+  const body = [
+    p({ style: 'Heading1', runs: ['Sample document'] }),
+    p({ runs: ['A short document with ', { t: 'bold', b: true }, ', ', { t: 'italic', i: true }, ', ', { t: 'underlined', u: 'single' }, ' and ', { t: 'colored', color: 'D9822B' }, ' text and accented letters: café, naïve, Zürich, Ø 25 ±0.1.'] }),
+    p({ style: 'Heading2', runs: ['Parts list'] }),
+    table({
+      width: [9000, 'dxa'],
+      borders: { top: line, left: line, bottom: line, right: line, insideH: line, insideV: line },
+      grid: [3000, 3000, 3000],
+      rows: parts.map((row, i) => ({ cells: row.map((t) => (i === 0 ? { runs: [{ t, b: true }], shd: 'F3F4F6' } : t)) })),
+    }),
+    p({ runs: ['Picture'] }),
+    p({ runs: [{ xml: `<w:r>${inline({ w, h, graphic: picGraphic({ rid: 'rId20', w, h }) })}</w:r>` }] }),
+    p({ runs: [br('page')] }),
+    p({ style: 'Heading2', runs: ['Second page'] }),
+    p({ runs: ['This page starts after a manual page break.'] }),
+    sectPr({ w: 11906, h: 16838, margins: { top: 1417, right: 1417, bottom: 1134, left: 1417, header: 708, footer: 708 } }),
+  ];
+  return docx({
+    title: 'Sample document',
+    subject: 'Test document for the Word renderer: headings, character formatting, a table, a picture, a page break',
+    body,
+    media: [['rId20', 'harbor.png', PICTURES.harbor]],
+  });
+}
+
 // ---- Output ------------------------------------------------------------------------------------------------
 
 mkdirSync(ROOT, { recursive: true });
@@ -1193,6 +1225,7 @@ const outputs = [
   ['forms-shapes-charts.docx', formsShapesCharts],
   ['vml-legacy.docx', vmlLegacy],
   ['page-effects.docx', pageEffects],
+  ['document.docx', basicDocument],
 ];
 for (const [name, build] of outputs) {
   docPrId = 1;
