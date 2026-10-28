@@ -1,6 +1,6 @@
 {
   "name": "ooxml-pages",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Render Word (.docx) and PowerPoint (.pptx) files in the browser as real pages and slides: Word-like pagination, floating objects, shapes, charts. Small, fast, view-only, no server.",
   "license": "MIT",
   "author": "Kai Jungsthoefel",
@@ -20,6 +20,10 @@
     "./metafile": {
       "types": "./dist/metafile.d.ts",
       "default": "./dist/metafile.js"
+    },
+    "./pdf": {
+      "types": "./dist/pdf.d.ts",
+      "default": "./dist/pdf.js"
     },
     "./docx.css": "./dist/docx.css",
     "./pptx.css": "./dist/pptx.css",
@@ -62,10 +66,35 @@
   "dependencies": {
     "@zip.js/zip.js": "^2.24.0"
   },
+  "peerDependencies": {
+    "@cantoo/fontkit": "^2.0.12",
+    "@cantoo/pdf-lib": "^2.11.1"
+  },
+  "peerDependenciesMeta": {
+    "@cantoo/fontkit": {
+      "optional": true
+    },
+    "@cantoo/pdf-lib": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@cantoo/fontkit": "^2.0.12",
+    "@cantoo/pdf-lib": "^2.11.1",
+    "@fontsource/arimo": "^5.3.0",
+    "@fontsource/caladea": "^5.3.0",
+    "@fontsource/carlito": "^5.3.0",
+    "@fontsource/cousine": "^5.3.0",
+    "@fontsource/noto-sans-math": "^5.3.0",
+    "@fontsource/noto-sans-symbols": "^5.3.0",
+    "@fontsource/noto-sans-symbols-2": "^5.3.0",
+    "@fontsource/stix-two-math": "^5.3.0",
+    "@fontsource/tinos": "^5.3.0",
     "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "html-entities": "^2.6.0",
+    "pdfjs-dist": "^6.4.299",
     "typescript": "^7.0.2",
-    "vite": "^8.3.5",
-    "@types/node": "^26.6.5"
+    "vite": "^8.3.5"
   }
 }

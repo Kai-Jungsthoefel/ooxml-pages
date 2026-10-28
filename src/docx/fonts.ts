@@ -34,6 +34,21 @@ export interface EmbeddedFonts {
   release(): void;
 }
 
+/** A font file embedded in the document, as PDF output gets it (src/pdf/fonts.ts). */
+export interface EmbeddedFontFile {
+  name: string;
+  bold: boolean;
+  italic: boolean;
+  bytes: Uint8Array<ArrayBuffer>;
+}
+
+let embeddedSink: ((file: EmbeddedFontFile) => void) | null = null;
+
+/** While set, every embedded font file is handed over, also those of fonts that are installed. */
+export function setEmbeddedFontSink(sink: ((file: EmbeddedFontFile) => void) | null): void {
+  embeddedSink = sink;
+}
+
 export async function loadEmbeddedFonts(pkg: Package, fontTablePart: string | null): Promise<EmbeddedFonts> {
   const faces: FontFace[] = [];
   const release = () => {
@@ -50,7 +65,9 @@ export async function loadEmbeddedFonts(pkg: Package, fontTablePart: string | nu
     if (font.localName !== 'font') continue;
     const name = clean(wa(font, 'name') ?? '');
     const embeds = kids(font).filter((e) => VARIANTS[e.localName]);
-    if (!name || !embeds.length || fontInstalled(name)) continue;
+    if (!name || !embeds.length) continue;
+    const installed = fontInstalled(name);
+    if (installed && !embeddedSink) continue;
     for (const embed of embeds) {
       if (faces.length >= MAX_FACES || total >= MAX_TOTAL_BYTES) break;
       const id = wa(embed, 'id');
@@ -59,8 +76,12 @@ export async function loadEmbeddedFonts(pkg: Package, fontTablePart: string | nu
       const bytes = await pkg.bytes(rel.target, MAX_FONT_BYTES);
       if (!bytes) continue;
       total += bytes.length;
+      const variant = VARIANTS[embed.localName];
+      const clear = deobfuscate(bytes, wa(embed, 'fontKey'));
+      embeddedSink?.({ name, bold: variant.weight === '700', italic: variant.style === 'italic', bytes: clear });
+      if (installed) continue;
       try {
-        const face = new FontFace(name, deobfuscate(bytes, wa(embed, 'fontKey')), VARIANTS[embed.localName]);
+        const face = new FontFace(name, clear, variant);
         await face.load();
         document.fonts.add(face);
         faces.push(face);

@@ -48,18 +48,53 @@ function clean(name: string): string {
   return name.replace(/["'\\;{}<>\p{Cc}]/gu, '').trim().slice(0, 64);
 }
 
+export type GenericFamily = 'sans-serif' | 'serif' | 'monospace' | 'symbol';
+
+/**
+ * While a PDF is made (src/pdf/fonts.ts), Office font names resolve to faces made from the very files the PDF
+ * embeds, so text is measured exactly as it will be drawn. The hook returns null to keep the usual family list.
+ */
+export type FamilyHook = (names: string[], generic: GenericFamily) => string | null;
+let familyHook: FamilyHook | null = null;
+
+export function setFamilyHook(hook: FamilyHook | null): void {
+  familyHook = hook;
+}
+
+/** Fonts that stand in for an Office font, best first. */
+export function substitutes(name: string): string[] {
+  return SUBSTITUTES[name.toLowerCase()] ?? [];
+}
+
+export function genericOf(name: string): GenericFamily {
+  return MONO.test(name) ? 'monospace' : SERIF.test(name) ? 'serif' : 'sans-serif';
+}
+
 export function fontFamily(...names: (string | undefined | null)[]): string {
   const list: string[] = [];
+  const asked: string[] = [];
   for (const raw of names) {
     if (!raw) continue;
     const name = clean(raw);
     if (!name || list.includes(name)) continue;
     list.push(name);
+    asked.push(name);
     for (const sub of SUBSTITUTES[name.toLowerCase()] ?? []) if (!list.includes(sub)) list.push(sub);
   }
-  const primary = list[0] ?? '';
-  const generic = MONO.test(primary) ? 'monospace' : SERIF.test(primary) ? 'serif' : 'sans-serif';
+  const generic = genericOf(list[0] ?? '');
+  const hooked = familyHook?.(asked, generic);
+  if (hooked) return hooked;
   return [...list.map((n) => `"${n}"`), generic].join(', ');
+}
+
+/** The family list for formulas (MATH_FAMILY in docx/math.ts). */
+export function mathFamily(fallback: string): string {
+  return familyHook?.(['Cambria Math'], 'serif') ?? fallback;
+}
+
+/** The family list for symbol characters drawn with a Unicode font (SYMBOL_FAMILY in docx/measure.ts). */
+export function symbolFamily(fallback: string): string {
+  return familyHook?.([], 'symbol') ?? fallback;
 }
 
 // Symbol fonts map letters to pictograms. Browsers on other systems lack them, so the common bullet glyphs

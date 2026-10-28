@@ -26,6 +26,12 @@
   text-size-adjust: none;
 }
 
+/* Boxes are sized with their padding (text insets) included, whatever the page sets. */
+.pptx-slide,
+.pptx-slide * {
+  box-sizing: border-box;
+}
+
 .pptx-bg,
 .pptx-bg-image {
   position: absolute;

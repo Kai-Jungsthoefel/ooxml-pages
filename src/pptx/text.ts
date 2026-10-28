@@ -2,6 +2,7 @@
 // Text bodies: property inheritance through the list-style layers (presentation defaults, master text styles,
 // placeholder list styles, shape list style, paragraph and run properties) and HTML output.
 // Text sizes: 1 pt = 4/3 px at 100 %.
+import { mathElement } from '../docx/math.js';
 import { h } from '../dom.js';
 import { type Color, colorIn, css } from './color.js';
 import { type Env, type Source, px, r2 } from './env.js';
@@ -322,12 +323,35 @@ function linkTarget(rPr: Element | null, source: Source): string | null {
   return /^(https?:|mailto:)/i.test(rel.target.trim()) ? rel.target.trim() : null;
 }
 
-/** Text of an equation (Office Math) when it is not replaced by a picture: the plain characters. */
+/** The plain characters of an equation (Office Math), for measuring the text around it. */
 function mathText(el: Element): string {
   return [...el.getElementsByTagName('*')]
     .filter((e) => e.localName === 't')
     .map((e) => e.textContent ?? '')
     .join('');
+}
+
+/** Date and time fields whose format the browser can write in the field's language; others keep the saved text. */
+const DATE_FIELDS: Record<string, Intl.DateTimeFormatOptions> = {
+  datetime: { year: 'numeric', month: 'numeric', day: 'numeric' },
+  datetime1: { year: 'numeric', month: 'numeric', day: 'numeric' },
+  datetime2: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' },
+  datetime4: { year: 'numeric', month: 'long', day: 'numeric' },
+  datetime10: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
+  datetime11: { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' },
+  datetime12: { hour: 'numeric', minute: '2-digit', hourCycle: 'h12' },
+  datetime13: { hour: 'numeric', minute: '2-digit', second: '2-digit', hourCycle: 'h12' },
+};
+
+/** A date field shows the current date, as PowerPoint updates it whenever the slide is shown or printed. */
+function dateField(type: string, lang: string | null): string | null {
+  const options = DATE_FIELDS[type];
+  if (!options) return null;
+  try {
+    return new Intl.DateTimeFormat(lang || 'en-US', options).format(new Date());
+  } catch {
+    return null;
+  }
 }
 
 function symbolText(text: string, font: string | undefined): string {
@@ -386,6 +410,8 @@ interface Piece {
   props: RunProps;
   href: string | null;
   keepColor: boolean;
+  /** An equation (m:oMath or m:oMathPara); `text` holds its characters. */
+  math?: Element;
 }
 
 function canvasFont(props: RunProps, env: Env, scale: number): string {
@@ -449,6 +475,7 @@ function renderParagraph(p: Element, layers: Layer[], opts: TextOptions, counter
       readRunProps(rPr, props, env);
       let text = (child(node, 't')?.textContent ?? '').slice(0, MAX_RUN_TEXT);
       if (name === 'fld' && attr(node, 'type') === 'slidenum') text = String(env.slideNumber);
+      else if (name === 'fld') text = dateField(attr(node, 'type') ?? '', attr(rPr, 'lang')) ?? text;
       text = symbolText(text.replace(/\v/g, '\n'), themeFont(props.latin ?? props.sym, env));
       if (!text) continue;
       const keepColor = descendant(child(rPr, 'hlinkClick'), 'hlinkClr')?.getAttribute('val') === 'tx';
@@ -456,8 +483,10 @@ function renderParagraph(p: Element, layers: Layer[], opts: TextOptions, counter
     } else if (name === 'br') {
       pieces.push('br');
     } else if (name === 'm') {
+      // a14:m: the letters come out italic from MathML itself.
       const text = mathText(node);
-      if (text) pieces.push({ text, props: { ...base, i: true, latin: 'Cambria Math' }, href: null, keepColor: false });
+      const math = child(node, 'oMathPara') ?? child(node, 'oMath');
+      if (text) pieces.push({ text, props: { ...base, i: false, latin: 'Cambria Math' }, href: null, keepColor: false, math: math ?? undefined });
     }
   }
   const texts = pieces.filter((x): x is Piece => x !== 'br');
@@ -549,7 +578,9 @@ function renderParagraph(p: Element, layers: Layer[], opts: TextOptions, counter
     }
     const span = h('span');
     const tabs = spacers?.[index++];
-    if (tabs?.length) {
+    if (piece.math) {
+      span.append(mathElement(piece.math, piece.math.localName === 'oMathPara'));
+    } else if (tabs?.length) {
       piece.text.split('\t').forEach((part, i) => {
         if (part) span.append(part);
         if (i < tabs.length) span.append(h('span', { class: 'pptx-tab', style: `width:${r2(tabs[i])}px` }));

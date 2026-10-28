@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Office Math (OMML) as MathML, which browsers lay out themselves: fractions, scripts, radicals, n-ary operators,
 // delimiters, functions, accents, bars, limits, matrices and equation arrays. Letters are italic like in Word.
+import { mathFamily } from '../pptx/fonts.js';
 import type { DrawingObj } from './model.js';
 import { kid, kids, wa } from './xml.js';
 
@@ -23,7 +24,13 @@ function token(tag: 'mi' | 'mn' | 'mo' | 'mtext', text: string, attrs: Record<st
   return el;
 }
 
-const OPERATORS = /[+\-−=<>≤≥≠±∓×÷·∙∘∗√∑∏∐∫∬∭∮∂∇∞→←↔⇒⇐⇔∈∉∋⊂⊃⊆⊇∪∩∧∨¬∀∃∅%/\\|‖!?,;:()[\]{}⟨⟩⌈⌉⌊⌋…⋯≈≡∼≃≅∝]/;
+/** Office stores accents as combining marks, which have no width of their own over a MathML base. */
+const SPACING_ACCENTS: Record<string, string> = {
+  '̀': '`', '́': '´', '̂': 'ˆ', '̃': '˜', '̄': '¯', '̅': '¯', '̆': '˘', '̇': '˙',
+  '̈': '¨', '̊': '˚', '̌': 'ˇ', '⃖': '←', '⃗': '→', '⃡': '↔', '⃐': '↼', '⃑': '⇀',
+};
+
+const OPERATORS =/[+\-−=<>≤≥≠±∓×÷·∙∘∗√∑∏∐∫∬∭∮∂∇∞→←↔⇒⇐⇔∈∉∋⊂⊃⊆⊇∪∩∧∨¬∀∃∅%/\\|‖!?,;:()[\]{}⟨⟩⌈⌉⌊⌋…⋯≈≡∼≃≅∝]/;
 
 /** Tokens of an m:r: numbers, operators, and letters one by one (italic unless plain style). */
 function runTokens(r: Element, budget: { n: number }): Element[] {
@@ -122,7 +129,7 @@ function convert(el: Element, depth: number, budget: { n: number }): Element | n
       return m('mrow', arg('fName'), token('mo', '⁡'), arg('e'));
     case 'acc': {
       const chr = prop(kid(el, 'accPr'), 'chr') ?? '̂';
-      const over = m('mover', arg('e'), token('mo', chr));
+      const over = m('mover', arg('e'), token('mo', SPACING_ACCENTS[chr] ?? chr));
       over.setAttribute('accent', 'true');
       return over;
     }
@@ -170,6 +177,8 @@ function convert(el: Element, depth: number, budget: { n: number }): Element | n
 export function mathElement(omml: Element, display: boolean): Element {
   const budget = { n: MAX_NODES };
   const math = m('math');
+  // The browser's own style gives <math> the generic family "math"; ours (MATH_FAMILY) is set on the container.
+  (math as MathMLElement).style.fontFamily = 'inherit';
   // Display equations keep full-size fractions and limits; laid out inline so we can place them ourselves.
   if (display) math.setAttribute('displaystyle', 'true');
   const parts = omml.localName === 'oMathPara' ? kids(omml).filter((e) => e.localName === 'oMath') : [omml];
@@ -195,7 +204,7 @@ export function mathSize(omml: Element, _display: boolean, fontSize: number): { 
   const cached = bySize.get(fontSize);
   if (cached) return cached;
   const holder = document.createElement('div');
-  holder.style.cssText = `position:absolute;left:-99999px;top:0;visibility:hidden;white-space:nowrap;line-height:normal;font-size:${fontSize}px;font-family:${MATH_FAMILY}`;
+  holder.style.cssText = `position:absolute;left:-99999px;top:0;visibility:hidden;white-space:nowrap;line-height:normal;font-size:${fontSize}px;font-family:${mathFamily(MATH_FAMILY)}`;
   const math = mathElement(omml, _display);
   const marker = document.createElement('span');
   marker.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
@@ -213,7 +222,7 @@ export function renderMath(omml: Element, obj: DrawingObj): HTMLElement {
   const wrap = document.createElement('div');
   wrap.className = 'docx-math';
   wrap.style.fontSize = `${obj.mathSize ?? 14.667}px`;
-  wrap.style.fontFamily = MATH_FAMILY;
+  wrap.style.fontFamily = mathFamily(MATH_FAMILY);
   wrap.append(mathElement(omml, obj.graphic.kind === 'math' && obj.graphic.display));
   return wrap;
 }

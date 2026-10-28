@@ -8,8 +8,8 @@ export function parseXml(text: string): Document | null {
 }
 
 /**
- * Element children, with markup-compatibility blocks resolved. We cannot know every extension a Choice requires,
- * and the Fallback is what the producer itself prepared for readers like us (e.g. equations as pictures).
+ * Element children, with markup-compatibility blocks resolved: the Choice where we know what it requires, else
+ * the Fallback the producer itself prepared for readers like us (e.g. a picture of a chart type we lack).
  */
 export function elements(el: Element | null | undefined): Element[] {
   const out: Element[] = [];
@@ -21,13 +21,22 @@ export function elements(el: Element | null | undefined): Element[] {
   return out;
 }
 
+/** Office 2010 drawing extensions: PowerPoint wraps text with equations (a14:m) in a Choice requiring them. */
+const SUPPORTED_EXTENSIONS = new Set(['http://schemas.microsoft.com/office/drawing/2010/main']);
+
 function alternate(block: Element): Element | null {
   let choice: Element | null = null;
+  let fallback: Element | null = null;
   for (let node = block.firstElementChild; node; node = node.nextElementSibling) {
-    if (node.localName === 'Fallback' && node.firstElementChild) return node;
-    if (node.localName === 'Choice' && !choice) choice = node;
+    if (node.localName === 'Choice') {
+      const requires = (node.getAttribute('Requires') ?? '').split(/\s+/).filter(Boolean);
+      if (requires.length && requires.every((prefix) => SUPPORTED_EXTENSIONS.has(node.lookupNamespaceURI(prefix) ?? ''))) return node;
+      choice ??= node;
+    } else if (node.localName === 'Fallback' && node.firstElementChild && !fallback) {
+      fallback = node;
+    }
   }
-  return choice;
+  return fallback ?? choice;
 }
 
 export function child(el: Element | null | undefined, name: string): Element | null {

@@ -3,7 +3,7 @@
 // ascent + descent + line gap, which is also what the browser uses for line-height: normal. Widths come from a
 // canvas, which resolves fonts exactly like the DOM text drawn later.
 import type { Theme } from '../pptx/color.js';
-import { fontFamily } from '../pptx/fonts.js';
+import { fontFamily, symbolFamily } from '../pptx/fonts.js';
 import type { RunProps } from './props.js';
 import { fullWidthBoxFont } from './symbols.js';
 import { halfPt } from './xml.js';
@@ -155,7 +155,7 @@ export function runFont(run: RunProps, script: Script, theme: Theme, override?: 
   const key = `${name}|${override ?? ''}|${size}|${bold}|${italic}|${kern}|${ligatures}`;
   let info = fontCache.get(key);
   if (info) return info;
-  const family = override ?? fontFamily(name, script === 'eastAsia' ? undefined : fontName(run, 'eastAsia', theme));
+  const family = override ? symbolFamily(override) : fontFamily(name, script === 'eastAsia' ? undefined : fontName(run, 'eastAsia', theme));
   const m = fontMetrics(family, bold, italic);
   info = {
     family,
@@ -175,9 +175,20 @@ export function runFont(run: RunProps, script: Script, theme: Theme, override?: 
 }
 
 const installed = new Map<string, boolean>();
+let installedHook: ((name: string) => boolean) | null = null;
+
+/**
+ * While a PDF is made (src/pdf/fonts.ts), a font counts as installed only when its file goes into the PDF, so that
+ * symbol fonts on this computer are translated to Unicode as on any other.
+ */
+export function setInstalledHook(hook: ((name: string) => boolean) | null): void {
+  installedHook = hook;
+  installed.clear();
+}
 
 /** Whether a font is installed: text in it measures differently from the generic fallbacks. */
 export function fontInstalled(name: string): boolean {
+  if (installedHook) return installedHook(name);
   const key = name.toLowerCase();
   let ok = installed.get(key);
   if (ok !== undefined) return ok;

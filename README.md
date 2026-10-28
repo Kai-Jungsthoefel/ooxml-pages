@@ -5,6 +5,7 @@ Render Word (`.docx`) and PowerPoint (`.pptx`) files in the browser as real page
 - **Laid out like Word:** line breaking, page breaks, columns, sections, headers and footers, footnotes and endnotes, tables that split across pages, floating pictures with every wrap type, keep-with-next, widow control.
 - **View only, and small:** about 160 KB (min + gzip) for Word including the PowerPoint drawing code, about 100 KB for PowerPoint alone. No framework, one dependency ([zip.js](https://github.com/gildas-lormeau/zip.js)).
 - **Fast:** a typical document lays out in a few hundred milliseconds; pages are drawn lazily while scrolling.
+- **PDF export:** the same pages as real PDFs, with selectable text, embedded fonts and vector graphics (optional entry point).
 - **Private:** everything happens in the browser. Nothing is uploaded, and no script from the document is ever run.
 
 [Live demo](https://kai-jungsthoefel.github.io/ooxml-pages/) · [Changelog](CHANGELOG.md)
@@ -90,11 +91,39 @@ const png = await metafileToPng(new Uint8Array(await file.arrayBuffer())); // Bl
 
 It replays the GDI records on a canvas (at most 2400 px on the longer side), so it needs a DOM.
 
+### PDF
+
+`ooxml-pages/pdf` turns documents and presentations into PDFs that look like the rendered pages: real text (selectable, searchable, in reading order), embedded fonts reduced to the characters used, vector shapes, charts and gradients, pictures, equations, and working links (web, mail and bookmarks).
+
+```sh
+npm install @cantoo/pdf-lib @cantoo/fontkit
+```
+
+```ts
+import { docxToPdf, pptxToPdf } from 'ooxml-pages/pdf';
+import 'ooxml-pages/docx.css'; // and/or pptx.css: the pages are drawn before they become PDF
+
+const { pdf, notes } = await docxToPdf(file, {
+  // Font files for a font name and style: one file, several (one font split by Unicode ranges), or null.
+  fonts: async (name, { bold, italic }) => loadFontFiles(name, bold, italic),
+  onProgress: ({ phase, fraction }) => console.log(phase, fraction),
+  title: file.name,      // document properties of the PDF
+  creator: 'My app',     // "ooxml-pages" when left out
+});
+const blob = new Blob([pdf], { type: 'application/pdf' });
+```
+
+`pptxToPdf` takes the same options and makes one page per slide; like PowerPoint it leaves out hidden slides unless `hiddenSlides: true`. `notes` lists, in English sentences for the user, what could not be carried over exactly (a font without a file, blurred shadows …).
+
+**Fonts.** A PDF has to embed its fonts, and text is measured with exactly the files that get embedded, so the app supplies them through `fonts`. It is asked for every font the document uses, then for that font's usual substitutes (Carlito for Calibri, Caladea for Cambria, Liberation for Arial, Times New Roman and Courier New …), and finally for the generic families `sans-serif`, `serif`, `monospace` and `symbol` (bullets, Wingdings and Symbol characters, which are translated to Unicode). Fonts embedded in the document are used first. Office's own fonts may not be redistributed, but the metric-compatible open ones may; all of these are on npm as [@fontsource](https://fontsource.org) packages: Carlito, Caladea, Arimo, Tinos, Cousine, plus Noto Sans Symbols, Noto Sans Symbols 2, Noto Sans Math and STIX Two Math for symbols and equations. [`demo/pdf.ts`](demo/pdf.ts) has a complete font source built from them. TTF, OTF and WOFF files work.
+
+The two packages are optional peer dependencies (MIT), so apps that only display documents do not install them. Like the renderers, PDF output runs in the browser: it lays the document out again off-screen with the PDF's fonts and converts the drawn pages. One PDF is made at a time; further calls wait. The font files from `fonts` are registered with the page under private names and stay there for later PDFs, so pages a viewer draws meanwhile keep their fonts.
+
 ## What is supported
 
 **Word:** styles and direct formatting, numbering and lists, tab stops with leaders, borders and shading, columns, sections with different page sizes and orientations, headers and footers (first page, even and odd), footnotes and endnotes, fields (page numbers, NUMPAGES, PAGEREF, table of contents), equations (Office Math), tables (merged cells, header rows that repeat, rows that split, cell spacing, vertical text), floating pictures and shapes with every wrap type and anchor, rotation, flips and cropping, text boxes, groups, charts and SmartArt, VML shapes, watermarks and horizontal rules, legacy form fields and content controls with check boxes, symbol fonts, drop caps and text frames, embedded fonts, page color and background pictures, page borders, Word 2010 text effects (gradient fill, outline, shadow), EMF and WMF pictures.
 
-**PowerPoint:** slide → layout → master inheritance, themes and color maps, preset and custom shapes, fills (solid, gradient, picture, pattern), lines and arrowheads, text with bullets, autofit and columns, tables with table styles, charts (bar, line, pie, area, scatter …), SmartArt (from the drawing PowerPoint saved), groups, hidden slides.
+**PowerPoint:** slide → layout → master inheritance, themes and color maps, preset and custom shapes, fills (solid, gradient, picture, pattern), lines and arrowheads, text with bullets, autofit and columns, equations, date fields, tables with table styles, charts (bar, line, pie, area, scatter …), SmartArt (from the drawing PowerPoint saved), groups, hidden slides.
 
 ## Limits
 
@@ -102,6 +131,7 @@ It replays the GDI records on a canvas (at most 2400 px on the longer side), so 
 - **Browser only.** Layout measures text with the browser's canvas, so it needs a DOM (no Node.js or server-side rendering).
 - **Fonts decide the line breaks.** Text is measured in the fonts the browser has. Where a document's fonts (Calibri, Cambria …) are not installed, the browser falls back to metric-compatible ones if present (Carlito, Caladea, Liberation) and otherwise to similar fonts, and lines may break differently from Word. Fonts embedded in a document are used.
 - **Approximations.** Art page borders (apples, stars …) are pictures built into Word; they are drawn as a dotted band of the same width. Text that Word sets slightly tighter can wrap a word earlier, so long documents may end up with a page more or less.
+- **PDF output** leaves out shape shadows, glow, soft edges and picture color effects (recoloring, brightness), and draws soft text shadows from a few faint copies. `notes` says when something was left out.
 - **Not supported:** the binary formats `.doc` and `.ppt`, password-protected files, tracked changes (the document is shown as it was saved), comments, animations and transitions, embedded videos.
 
 ## Security
@@ -112,8 +142,8 @@ Documents are untrusted input. The renderers never run scripts from a document, 
 
 ```sh
 npm install
-npm run dev          # demo page with the test files on http://localhost:5180
-npm test             # renders every test file in a browser and checks the page counts against Word
+npm run dev          # demo page with the test files on http://localhost:5180 (pdf.html?file=… compares PDF output)
+npm test             # renders every test file in a browser, checks the page counts against Word, makes PDFs
 npm run build        # dist/: ES modules, type declarations, stylesheets
 npm run samples      # regenerates the test files in test/fixtures/
 ```

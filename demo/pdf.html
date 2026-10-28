@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="icon" href="data:,">
+  <title>ooxml-pages PDF output</title>
+  <style>
+    body { margin: 0; background: #ddd; font: 13px system-ui, sans-serif; }
+    #status { position: sticky; top: 0; z-index: 2; padding: 8px 12px; background: #fff; border-bottom: 1px solid #ccc; }
+    #compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; align-items: start; }
+    #compare h2 { margin: 0 0 8px; font-size: 13px; }
+    #pdf canvas { display: block; margin: 0 auto 24px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+  </style>
+</head>
+<body>
+  <div id="status">Converting …</div>
+  <div id="compare">
+    <section><h2>Rendered pages</h2><div id="pages"></div></section>
+    <section><h2>PDF (pdf.js)</h2><div id="pdf"></div></section>
+  </div>
+  <script type="module" src="./pdf.ts"></script>
+</body>
+</html>
