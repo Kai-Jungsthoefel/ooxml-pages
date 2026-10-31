@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 – 2026-10-31
+
+- New entry point `ooxml-pages/content` with `readDocxContent`: a Word document's paragraphs (style, outline level, list marker), formatted text runs, tables with merged cells, notes, pictures and equations, without layout, for converting documents into other markups.
+
 ## 0.3.0 – 2026-10-28
 
 - New entry point `ooxml-pages/pdf` with `docxToPdf` and `pptxToPdf`: PDFs that look like the rendered pages, with real text, embedded font subsets, vector shapes, charts, gradients, pictures, equations and links. The app supplies the font files (`PdfFontSource`); `@cantoo/pdf-lib` and `@cantoo/fontkit` are optional peer dependencies, needed only for this entry point.

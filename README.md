@@ -91,6 +91,24 @@ const png = await metafileToPng(new Uint8Array(await file.arrayBuffer())); // Bl
 
 It replays the GDI records on a canvas (at most 2400 px on the longer side), so it needs a DOM.
 
+### Content
+
+`ooxml-pages/content` reads what a Word document says without laying it out, for converting it into another markup (LaTeX, Markdown, HTML …):
+
+```ts
+import { readDocxContent } from 'ooxml-pages/content';
+
+const content = await readDocxContent(file);
+for (const block of content.blocks) {
+  if (block.type === 'paragraph') console.log(block.outlineLevel, block.list?.marker, block.inlines);
+  else console.log(block.rows.length, 'rows'); // a table
+}
+const picture = await content.picture(id); // Blob of a picture inline (PNG for EMF/WMF)
+content.close();
+```
+
+Paragraphs come with their style, outline level (0 for Heading 1), alignment and list marker as Word numbers it; text runs with bold, italic, underline, strike, super- and subscript, caps, monospace and links (runs that look the same are joined). Tables give their grid widths and cells with column and row spans (vertical merges resolved), notes are separate maps referenced from the text, equations stay Office MathML elements, and text frames and boxes appear where they are anchored. Field results and symbol fonts come as Unicode text; hidden text is left out.
+
 ### PDF
 
 `ooxml-pages/pdf` turns documents and presentations into PDFs that look like the rendered pages: real text (selectable, searchable, in reading order), embedded fonts reduced to the characters used, vector shapes, charts and gradients, pictures, equations, and working links (web, mail and bookmarks).
